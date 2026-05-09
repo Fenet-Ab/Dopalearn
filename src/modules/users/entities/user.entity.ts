@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Video, Vocabulary } from '../../videos/entities/video.entity';
 
 @Entity('users')
 export class User {
@@ -31,4 +32,17 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Video, (video) => video.creator)
+  createdVideos: Video[];
+
+  @ManyToMany(() => Video, (video) => video.likedBy)
+  likedVideos: Video[];
+
+  @ManyToMany(() => Video, (video) => video.favoritedBy)
+  favoriteVideos: Video[];
+
+  @ManyToMany(() => Vocabulary)
+  @JoinTable({ name: 'user_learned_vocabulary' })
+  learnedWords: Vocabulary[];
 }
