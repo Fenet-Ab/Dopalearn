@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsUUID, IsBoolean, IsArray } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateVideoDto {
   @IsString()
@@ -18,6 +19,7 @@ export class CreateVideoDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   isDraft?: boolean;
 
   @IsUUID()
@@ -26,6 +28,16 @@ export class CreateVideoDto {
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return value;
+      }
+    }
+    return value;
+  })
   subtitles?: {
     startTime: number;
     endTime: number;
