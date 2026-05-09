@@ -10,18 +10,18 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-  ) {}
+  ) { }
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
     const { parentId, ...data } = createCategoryDto;
     const category = this.categoryRepository.create(data);
-    
+
     if (parentId) {
       const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
       if (!parent) throw new NotFoundException('Parent category not found');
       category.parent = parent;
     }
-    
+
     return this.categoryRepository.save(category);
   }
 
@@ -43,13 +43,13 @@ export class CategoriesService {
   async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
     const category = await this.findOne(id);
     const { parentId, ...data } = updateCategoryDto;
-    
+
     if (parentId) {
       const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
       if (!parent) throw new NotFoundException('Parent category not found');
       category.parent = parent;
     }
-    
+
     Object.assign(category, data);
     return this.categoryRepository.save(category);
   }
