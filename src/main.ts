@@ -15,6 +15,13 @@ async function bootstrap() {
     }),
   );
 
+  // Enable CORS
+  app.enableCors({
+    origin: true, // Allow all origins for development
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('DopaLearn API')
