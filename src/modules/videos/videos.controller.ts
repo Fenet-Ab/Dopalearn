@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Req, Delete, Patch, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Req, Delete, Patch, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { VideosService } from './videos.service';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
@@ -6,7 +7,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('videos')
 @Controller('videos')
@@ -19,17 +20,22 @@ export class VideosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get dashboard statistics (Admin only)' })
   getDashboardStats() {
-    console.log('Dashboard stats request received');
     return this.videosService.getDashboardStats();
   }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @UseInterceptors(FileInterceptor('video'))
   @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new video (Admin only)' })
-  create(@Body() createVideoDto: CreateVideoDto, @Req() req) {
-    return this.videosService.create(createVideoDto, req.user);
+  create(
+    @Body() createVideoDto: CreateVideoDto,
+    @Req() req,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    return this.videosService.create(createVideoDto, req.user, file);
   }
 
   @Get()
@@ -93,7 +99,6 @@ export class VideosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a video (Admin only)' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    console.log(`Delete request received for video ID: ${id}`);
     return this.videosService.remove(id);
   }
 

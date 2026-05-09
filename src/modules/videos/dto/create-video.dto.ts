@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsBoolean, IsArray, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsBoolean, IsArray } from 'class-validator';
 
 export class CreateVideoDto {
   @IsString()
@@ -9,7 +9,8 @@ export class CreateVideoDto {
   description?: string;
 
   @IsString()
-  url: string;
+  @IsOptional()
+  url?: string;
 
   @IsString()
   @IsOptional()

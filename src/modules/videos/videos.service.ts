@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Video, SubtitleSegment, Vocabulary } from './entities/video.entity';
@@ -6,6 +6,7 @@ import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class VideosService {
@@ -20,13 +21,27 @@ export class VideosService {
     private subtitleRepository: Repository<SubtitleSegment>,
     @InjectRepository(Vocabulary)
     private vocabularyRepository: Repository<Vocabulary>,
+    private storageService: StorageService,
   ) {}
 
-  async create(createVideoDto: CreateVideoDto, creator: User): Promise<Video> {
+  async create(createVideoDto: CreateVideoDto, creator: User, file?: Express.Multer.File): Promise<Video> {
     const { categoryId, subtitles, ...videoData } = createVideoDto;
     
+    let videoUrl = createVideoDto.url;
+
+    if (file) {
+      console.log(`Uploading file: ${file.originalname}`);
+      videoUrl = await this.storageService.uploadFile(file, 'videos');
+      console.log(`File uploaded successfully. URL: ${videoUrl}`);
+    }
+
+    if (!videoUrl && !createVideoDto.isDraft) {
+      throw new BadRequestException('Video URL or file is required for non-draft videos');
+    }
+
     const video = this.videoRepository.create({
       ...videoData,
+      url: videoUrl || '',
       creator,
     });
 
